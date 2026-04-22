@@ -17,14 +17,20 @@ export default function NotesClient({ tag }: Props) {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
+  
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(search);
-      setPage(1);
     }, 500);
 
     return () => clearTimeout(timer);
   }, [search]);
+
+ 
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setPage(1);
+  };
 
   const { data, isLoading } = useQuery({
     queryKey: ["notes", page, debouncedSearch, tag],
@@ -42,7 +48,7 @@ export default function NotesClient({ tag }: Props) {
     <div>
       <Link href="/notes/action/create">Create note +</Link>
 
-      <SearchBox value={search} onChange={setSearch} />
+      <SearchBox value={search} onChange={handleSearchChange} />
 
       <NoteList notes={data.notes} />
 
