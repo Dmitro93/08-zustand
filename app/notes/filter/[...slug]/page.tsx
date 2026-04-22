@@ -5,6 +5,28 @@ import {
 } from "@tanstack/react-query";
 import { fetchNotes } from "@/lib/api";
 import NotesClient from "./Notes.client";
+import type { Metadata } from "next";
+
+type Props = {
+  params: { slug?: string[] };
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const tag = params.slug?.[0] ?? "all";
+
+  return {
+    title: `Notes - ${tag}`,
+    description: `Filtered notes by ${tag}`,
+    openGraph: {
+      title: `Notes - ${tag}`,
+      description: `Filtered notes by ${tag}`,
+      url: `https://your-vercel-url.vercel.app/notes/filter/${tag}`,
+      images: [
+        "https://ac.goit.global/fullstack/react/notehub-og-meta.jpg",
+      ],
+    },
+  };
+}
 
 export default async function FilterPage({
   params,
