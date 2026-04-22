@@ -1,32 +1,56 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchNotes } from "@/lib/api";
+import NoteList from "@/components/NoteList/NoteList";
+import SearchBox from "@/components/SearchBox/SearchBox";
+import Pagination from "@/components/Pagination/Pagination";
+import Link from "next/link";
 
-export default function NotesClient({ tag }: { tag?: string }) {
-  const page = 1;
-  const search = "";
+type Props = {
+  tag: string;
+};
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["notes", page, search, tag],
+export default function NotesClient({ tag }: Props) {
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["notes", page, debouncedSearch, tag],
     queryFn: () =>
       fetchNotes({
         page,
-        search,
+        search: debouncedSearch,
         tag,
       }),
   });
 
-  if (isLoading) return <p>Loading...</p>;
-  if (isError || !data) return <p>Error</p>;
+  if (isLoading || !data) return <p>Loading...</p>;
 
   return (
     <div>
-      {data.notes.map((note) => (
-        <div key={note.id}>
-          <h3>{note.title}</h3>
-        </div>
-      ))}
+      <Link href="/notes/action/create">Create note +</Link>
+
+      <SearchBox value={search} onChange={setSearch} />
+
+      <NoteList notes={data.notes} />
+
+      <Pagination
+        currentPage={page}
+        totalPages={data.totalPages}
+        onPageChange={setPage}
+      />
     </div>
   );
 }

@@ -2,32 +2,43 @@
 
 import { useNoteStore } from "@/lib/store/noteStore";
 import { useRouter } from "next/navigation";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createNote } from "@/lib/api";
 import css from "./NoteForm.module.css";
 
 export default function NoteForm() {
   const { draft, setDraft, clearDraft } = useNoteStore();
   const router = useRouter();
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: createNote,
+    onSuccess: () => {
+      clearDraft();
+      queryClient.invalidateQueries({ queryKey: ["notes"] });
+      router.back();
+    },
+  });
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
-    setDraft({ [e.target.name]: e.target.value });
+    setDraft({
+      ...draft,
+      [e.target.name]: e.target.value,
+    });
   };
 
-  const handleSubmit = async (formData: FormData) => {
+  const handleSubmit = (formData: FormData) => {
     const note = {
-      title: formData.get("title"),
-      content: formData.get("content"),
-      tag: formData.get("tag"),
+      title: String(formData.get("title") || ""),
+      content: String(formData.get("content") || ""),
+      tag: String(formData.get("tag") || "Todo"),
     };
 
-    await fetch("/api/notes", {
-      method: "POST",
-      body: JSON.stringify(note),
-    });
-
-    clearDraft();
-    router.back();
+    mutation.mutate(note);
   };
 
   return (
@@ -36,20 +47,24 @@ export default function NoteForm() {
         name="title"
         value={draft.title}
         onChange={handleChange}
-        placeholder="Title"
       />
 
       <textarea
         name="content"
         value={draft.content}
         onChange={handleChange}
-        placeholder="Content"
       />
 
-      <select name="tag" value={draft.tag} onChange={handleChange}>
+      <select
+        name="tag"
+        value={draft.tag}
+        onChange={handleChange}
+      >
         <option value="Todo">Todo</option>
         <option value="Work">Work</option>
         <option value="Personal">Personal</option>
+        <option value="Meeting">Meeting</option>
+        <option value="Shopping">Shopping</option>
       </select>
 
       <button type="submit">Create</button>

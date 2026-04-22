@@ -4,19 +4,22 @@ import NoteDetailsClient from "./NoteDetails.client";
 import type { Metadata } from "next";
 
 type Props = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const note = await fetchNoteById(params.id);
+export async function generateMetadata({
+  params,
+}: Props): Promise<Metadata> {
+  const { id } = await params;
 
-  return {
+  const note = await fetchNoteById(id);
+ return {
     title: note.title,
     description: note.content.slice(0, 100),
     openGraph: {
       title: note.title,
       description: note.content.slice(0, 100),
-      url: `https://your-vercel-url.vercel.app/notes/${params.id}`,
+      url: `https://your-vercel-url.vercel.app/notes/${id}`,
       images: [
         "https://ac.goit.global/fullstack/react/notehub-og-meta.jpg",
       ],

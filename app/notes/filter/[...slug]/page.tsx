@@ -8,11 +8,16 @@ import NotesClient from "./Notes.client";
 import type { Metadata } from "next";
 
 type Props = {
-  params: { slug?: string[] };
+  params: Promise<{ slug?: string[] }>;
 };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const tag = params.slug?.[0] ?? "all";
+
+export async function generateMetadata({
+  params,
+}: Props): Promise<Metadata> {
+  const { slug } = await params;
+
+  const tag = slug?.[0] ?? "all";
 
   return {
     title: `Notes - ${tag}`,
@@ -30,18 +35,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function FilterPage({
   params,
-}: {
-  params: { slug: string[] };
-}) {
-  const tag = params.slug?.[0];
-  const normalizedTag = tag === "all" ? undefined : tag;
+}: Props) {
+  const { slug } = await params;
+
+  const tag = slug?.[0] ?? "all";
+
+  
+  const normalizedTag = tag === "all" ? "" : tag;
 
   const queryClient = new QueryClient();
 
   await queryClient.prefetchQuery({
-    queryKey: ["notes", normalizedTag],
+
+    queryKey: ["notes", 1, "", normalizedTag],
     queryFn: () =>
       fetchNotes({
+        page: 1,
+        search: "",
         tag: normalizedTag,
       }),
   });
