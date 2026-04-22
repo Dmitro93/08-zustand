@@ -45,18 +45,20 @@ export default function NotesClient({ tag }: Props) {
   if (isLoading || !data) return <p>Loading...</p>;
 
   return (
-    <div>
-      <Link href="/notes/action/create">Create note +</Link>
+  <div>
+    <Link href="/notes/action/create">Create note +</Link>
 
-      <SearchBox value={search} onChange={handleSearchChange} />
+    <SearchBox value={search} onChange={handleSearchChange} />
 
+    {data.notes.length > 0 && (
       <NoteList notes={data.notes} />
+    )}
 
-      <Pagination
-        currentPage={page}
-        totalPages={data.totalPages}
-        onPageChange={setPage}
-      />
-    </div>
-  );
+    <Pagination
+      currentPage={page}
+      totalPages={data.totalPages}
+      onPageChange={setPage}
+    />
+  </div>
+);
 }
